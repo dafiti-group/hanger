@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Hanger</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container">
+            <table>
+                <tr>
+                    <th>
+                        <h3 class="page-title">Approvals</h3>
+                    </th>
+                    <th class="btn-action">
+                    </th>
+                </tr>
+            </table>
+
+            <div th:if="${ successMessage != null }">
+                <!--Success-->
+                <div>
+                    <div class="alert alert-success" role="alert">
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${ warningMessage != null }">
+                <!--warning-->
+                <div>
+                    <div class="alert alert-warning" role="alert">
+                        <span th:text="${warningMessage}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <table id="table" class="table">
+                <thead>
+                    <tr>
+                        <th class="img-sort">Status</th>
+                        <th style="width:40%">Job</th>                        
+                        <th class="no-sort"><span class="glyphicon glyphicon-link"></span></th>                        
+                        <th>Update</th>
+                        <th>Approver</th>
+                        <th class="no-sort" style="width:5%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="jobs : ${jobDetails}">
+                        <td><a class="link" th:href="@{'/flow/job/'  + ${jobs.job.id}}"><img class="status" th:src="@{'/images/' + ${jobs.status} + '.png'}" th:attr="alt=${ jobs.status }" th:title="${jobs.status}"></img></a></td>
+                        <td><a class="link" th:href="@{'/flow/job/'  + ${jobs.job.id}}" th:text="${jobs.job.name}"></a></td>
+                        <td><a class="link" th:href="@{ ${jobs.job.server.url} + 'job/' + ${jobs.job.name}}" target="_blank"> +</a></td>
+                        <td><a class="link" th:href="@{'/flow/job/'  + ${jobs.job.id}}" th:text="${jobs.buildTime}"></a></td>
+                        <td th:text="${jobs.job.approver != null ? jobs.job.approver.fullName : ''}"></td>
+                        <td>
+                            <div th:if="${jobs.job.approver != null}">
+                                <div th:switch="${username}">
+                                    <div th:case="${jobs.job.approver.username}">
+                                        <a th:href="@{'/approval/approval/' + ${jobs.job.id}}" class="btn btn-generic btn-xs pull-right btn-space">
+                                            <span class="glyphicon glyphicon-check" aria-hidden="true"></span> Approval
+                                        </a>
+                                    </div>
+
+                                    <div th:case="*">
+                                        <a th:if="${ ( #httpServletRequest.isUserInRole('ADMIN') or #httpServletRequest.isUserInRole('HERO') ) }" th:href="@{'/approval/approval/' + ${jobs.job.id}}" class="btn btn-generic btn-xs pull-right btn-space">
+                                            <span class="glyphicon glyphicon-check" aria-hidden="true"></span> Approval
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${jobs.job.approver == null}">
+                                <a th:if="${ ( #httpServletRequest.isUserInRole('ADMIN') or #httpServletRequest.isUserInRole('HERO') ) }" th:href="@{'/approval/approval/' + ${jobs.job.id}}" class="btn btn-generic btn-xs pull-right btn-space">
+                                    <span class="glyphicon glyphicon-check" aria-hidden="true"></span> Approval
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>

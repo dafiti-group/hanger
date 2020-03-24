@@ -148,7 +148,7 @@
                             <div th:if="${not #lists.isEmpty(job.parent)}" id="parent" class="tab-pane fade in active space-top">                            
                                 <table class="table">
                                     <tr>
-                                        <th style="width:5%">#</th>
+                                        <th style="width:2.5%">#</th>
                                         <th style="width:2.5%"><span class="glyphicon glyphicon-pause" title="Blocker"></span></th>
                                         <th style="width:10%">Server</th>
                                         <th style="width:55%">Name</th>                               
@@ -186,7 +186,7 @@
                             <div th:if="${not #lists.isEmpty(children)}" id="child" class="tab-pane fade in space-top" th:classappend="${#lists.isEmpty(job.parent)} ? active : ''">
                                 <table class="table">
                                     <tr>
-                                        <th style="width:5%">#</th>
+                                        <th style="width:2.5%">#</th>
                                         <th style="width:2.5%"><span class="glyphicon glyphicon-pause" title="Blocker"></span></th>
                                         <th style="width:2.5%"><span class="glyphicon glyphicon-retweet" title="Rebuildable"></span></th>
                                         <th style="width:10%">Server</th>
@@ -403,7 +403,6 @@
                                                                 id="prevalidation" 
                                                                 name="prevalidationEnabled"
                                                                 type="checkbox" 
-                                                                disabled="true"
                                                                 data-onstyle="default" 
                                                                 th:field="*{checkup[__${stat.index}__].prevalidation}" 
                                                                 th:checked="*{checkup[__${stat.index}__].prevalidation}"/> Prevalidation

@@ -40,18 +40,6 @@
                 </tr>
             </table>
 
-            <div th:if="${ errorMessage != null }" class="form-group">
-                <div class="alert alert-danger" role="alert">
-                    <span th:text="${errorMessage}"></span>
-                </div>  
-            </div>
-
-            <div th:if="${ successMessage != null }" class="form-group">
-                <div class="alert alert-success" role="alert">
-                    <span th:text="${successMessage}"></span>
-                </div>  
-            </div>
-
             <div th:if="${not #lists.isEmpty(approvals)}">
                 <fieldset>
                     <legend class="space-top">Approval</legend>
@@ -171,8 +159,8 @@
                 'left-trim': true,
                 'right-trim': true,
             });
-
-            $(function () {
+            
+            $(function() {
                 new ClipboardJS('.btn-copy');
             });
         </script>

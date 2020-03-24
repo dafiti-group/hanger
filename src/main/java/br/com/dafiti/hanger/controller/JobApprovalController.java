@@ -24,8 +24,12 @@
 package br.com.dafiti.hanger.controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,10 +40,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.dafiti.hanger.model.Job;
 import br.com.dafiti.hanger.model.JobApproval;
+import br.com.dafiti.hanger.model.JobDetails;
 import br.com.dafiti.hanger.model.Role;
 import br.com.dafiti.hanger.model.User;
 import br.com.dafiti.hanger.option.Flow;
 import br.com.dafiti.hanger.service.JobApprovalService;
+import br.com.dafiti.hanger.service.JobDetailsService;
 import br.com.dafiti.hanger.service.RoleService;
 import br.com.dafiti.hanger.service.UserService;
 
@@ -56,16 +62,37 @@ public class JobApprovalController {
     private final JobApprovalService jobApprovalService;
     private final UserService userService;
     private final RoleService roleService;
+    private final JobDetailsService jobDetailsService;
 
     @Autowired
     public JobApprovalController(
             JobApprovalService jobApprovalService,
             UserService userService,
-            RoleService roleService) {
+            RoleService roleService,
+            JobDetailsService jobDetailsService) {
 
         this.jobApprovalService = jobApprovalService;
         this.userService = userService;
         this.roleService = roleService;
+        this.jobDetailsService = jobDetailsService;
+    }
+
+    /**
+     * Show a list with jobs detail that contains an approver and should be
+     * approved if it is UNHEALTHY
+     *
+     * @param model Model
+     * @return Approval list template
+     */
+    @GetMapping("/list")
+    public String list(Model model) {
+        HashSet<Job> jobs = this.jobApprovalService.findPending();
+        List<JobDetails> details = jobDetailsService.getDetailsOf(new ArrayList<>(jobs));
+
+        model.addAttribute("username", SecurityContextHolder.getContext().getAuthentication().getName());
+        model.addAttribute("jobDetails", details);
+
+        return "/approval/list";
     }
 
     /**
@@ -84,39 +111,38 @@ public class JobApprovalController {
             Principal principal,
             @PathVariable(value = "job_id") Job job) {
 
-        //Identifies if the job exists. 
+        String approverName = "";
+        User user = userService.findByUsername(principal.getName());
+
         if (job != null) {
-            User user = userService.findByUsername(principal.getName());
+            User approver = job.getApprover();
 
-            //Identifies if the job has an approver. 
-            if (job.getApprover() != null) {
-                //Identifies if the logger user is the job approver. 
-                if (!user.getUsername().equals(job.getApprover().getUsername())) {
-                    Role userRole = roleService.findByName("USER");
-
-                    if (user.getRoles().contains(userRole)) {
-                        redirectAttributes.addFlashAttribute("errorMessage", "You don't have approval permission!");
-                        return "redirect:/checkup/job/" + job.getId() + "/list/";
-                    }
-                }
-            }
-
-            //Identifies if the job needs approval and redirect to approval form. 
-            if (job.getStatus().getFlow() == Flow.UNHEALTHY
-                    || job.getStatus().getFlow() == Flow.BLOCKED) {
-
-                model.addAttribute("job", job);
-                model.addAttribute("jobApproval", new JobApproval());
-                return "/approval/approval";
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "This job don't need your approval!");
-                return "redirect:/checkup/job/" + job.getId() + "/list/";
+            if (approver != null) {
+                approverName = approver.getUsername();
             }
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "You tried to access a job that doesn't exists!");
+            redirectAttributes.addFlashAttribute("warningMessage", "Sorry, but you tried to access a non existing job!");
+            return "redirect:/approval/list";
         }
 
-        return "redirect:/job/list";
+        if (!user.getUsername().equals(approverName)) {
+            Role userRole = roleService.findByName("USER");
+
+            if (user.getRoles().contains(userRole)) {
+                redirectAttributes.addFlashAttribute("warningMessage", "Sorry, but you don't have permission for approval!");
+                return "redirect:/approval/list";
+            }
+        }
+
+        if (job.getStatus().getFlow() == Flow.UNHEALTHY || job.getStatus().getFlow() == Flow.BLOCKED) {
+            model.addAttribute("job", job);
+            model.addAttribute("jobApproval", new JobApproval());
+            return "/approval/approval";
+        }
+
+        redirectAttributes.addFlashAttribute("warningMessage", "Sorry, but can't approve a Job that is not UNHEALTHY or BLOCKED");
+
+        return "redirect:/approval/list";
     }
 
     /**
@@ -135,12 +161,14 @@ public class JobApprovalController {
             @Valid @ModelAttribute JobApproval jobApproval,
             @PathVariable("job_id") Job job) {
 
+        Flow flow = job.getStatus().getFlow();
+
         this.jobApprovalService.approve(jobApproval, job, true);
 
-        if (this.jobApprovalService.push(job, job.getStatus().getFlow())) {
+        if (this.jobApprovalService.push(job, flow)) {
             redirectAttributes.addFlashAttribute("successMessage", "Job " + job.getName() + " approved!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Fail building job " + job.getName() + " dependencies!");
+            redirectAttributes.addFlashAttribute("warningMessage", "Job approved, but fail building!");
         }
 
         return "redirect:/checkup/job/" + job.getId() + "/list/";
@@ -164,7 +192,7 @@ public class JobApprovalController {
 
         this.jobApprovalService.approve(jobApproval, job, false);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Job " + job.getName() + " not approved!");
+        redirectAttributes.addFlashAttribute("successMessage", "Job " + job.getName() + " disapproved!");
         return "redirect:/checkup/job/" + job.getId() + "/list/";
     }
 }
