@@ -48,6 +48,14 @@
             <!--Scroll position-->
             <script th:inline="javascript">
                 $(document).ready(function () {
+                    // This div should appear when click on 'Add job' radio btn.
+                    $(".div-create").hide("fast");
+                    $(".div-migrate").hide("fast");
+                    $(".div-import").show("fast");
+
+                    // Default value is to import jobs.
+                    var action = "import";
+
                     toastr.options = {
                         "closeButton": true,
                         "progressBar": true,
@@ -59,124 +67,81 @@
                         "hideMethod": "fadeOut"
                     };
 
-                    // This div should appear when click on 'Add job' radio btn.
-                    $(".div_new_job").hide();
+                    //Displays the fields from the selected action.
+                    $("input[name=action]").on("change", function () {
+                        action = $(this).val();
 
-                    // Default value is to import jobs.
-                    var importJob = true;
+                        switch (action) {
+                            case "import":
+                                $(".div-create").hide("fast");
+                                $(".div-migrate").hide("fast");
+                                $(".div-import").show("fast");
 
-                    // Load jobs list only when select server
-                    if ($("#select-server").val() !== undefined) {
-                        loadJobList(importJob);
-                    }
+                                break;
 
-                    $("input[name=importJob]").on("change", function () {
-                        //Identify if is import or create a new job.
-                        importJob = $(this).val() === 'true';
+                            case "create":
+                                $(".div-import").hide("fast");
+                                $(".div-migrate").hide("fast");
+                                $(".div-create").show("fast");
 
-                        if (importJob) {
-                            // Hides div for new job
-                            $(".div_new_job").hide("fast");
-
-                            // Show div for import
-                            $(".div_import").show("fast");
-
-                            // When is import, job name is not required.
-                            $("#jobName").removeAttr("required");
-
-                            // When is import, select template is not required.
-                            $('#select-template').removeAttr("required");
-
-                            // Refresh component.
-                            $('#select-template').selectpicker('refresh');
-
-                            // For new jobs, select template is required.
-                            $("#select-job").attr("required", "true");
-
-                            // Refresh component.
-                            $('#select-job').selectpicker('refresh');
-
-                            // Button Next appear on import operation.
-                            $('#partial_load_job').prop('disabled', false);
-                        } else {
-                            // Hide div for import
-                            $(".div_import").hide("fast");
-
-                            // Appears div for new job.
-                            $(".div_new_job").show("fast");
-
-                            // Focus do type job name
-                            $("#jobName").focus();
-
-                            // For new jobs, name is required.
-                            $("#jobName").attr("required", "true");
-
-                            // For new jobs, select template is required.
-                            $("#select-template").attr("required", "true");
-
-                            // Refresh component.
-                            $('#select-template').selectpicker('refresh');
-
-                            // When is import, select template is not required.
-                            $('#select-job').removeAttr("required");
-
-                            // Refresh component.
-                            $('#select-job').selectpicker('refresh');
+                                break;
+                            default:
+                                $(".div-import").hide("fast");
+                                $(".div-create").hide("fast");
+                                $(".div-migrate").show("fast");
                         }
-
-                        loadJobList(importJob);
                     });
 
-                    //Identify if is import or create a new job.
-                    $("#select-server").on("change", function () {
-                        loadJobList(importJob);
+                    //Identify the server for the selected action.
+                    $(".select-server").on("change", function () {
+                        loadJobList($(this)[0].id);
+                    });
+
+                    //Action migrate, copy the name of the selected job.
+                    $("#migrateSourceJob").on("change", function () {
+                        $('#migrateJobName').val($(this).val());
                     });
 
                     /**
                      * Load server jobs. 
-                     * @param {type} isImport
+                     * @param {type} selectServer
                      * @returns {undefined}
                      */
-                    function loadJobList(isImport) {
+                    function loadJobList(selectServer) {
                         var url = /*[[@{/job/list/}]]*/ "/job/list/";
-                        var server = $("#select-server").val();
+                        var server = $("#" + selectServer).val();
+                        var select = $("#" + selectServer.replace("Server", "Job"));
 
-                        if ((server !== null) && (server !== undefined) && (server !== "")) {
-                            var select;
-
-                            //Identifies wich object should be filled.
-                            if (isImport) {
-                                select = $("#select-job");
-                            } else {
-                                select = $('#select-template');
-                            }
-
-                            $.ajax({
-                                type: "GET",
-                                url: url + server,
-                                timeout: 15000,
-                                data: {
-                                    incremental: isImport
-                                },
-                                success: function (jobs) {
-                                    for (var index = 0; index < jobs.length; index++) {
-                                        select.append(new Option(jobs[index], jobs[index]));
-                                    }
-
-                                    select.selectpicker('refresh');
-                                },
-                                error: function (xhr) {
-                                    select.empty();
-                                    select.selectpicker('refresh');
-
-                                    toastr.error("Error trying to get list of jobs " + xhr.responseText);
-                                },
-                                beforeSend: function () {
-                                    select.selectpicker('refresh');
-                                    select.empty();
+                        $.ajax({
+                            type: "GET",
+                            url: url + server,
+                            timeout: 15000,
+                            data: {
+                                incremental: select.hasClass("incremental")
+                            },
+                            success: function (jobs) {
+                                for (var index = 0; index < jobs.length; index++) {
+                                    select.append(new Option(jobs[index], jobs[index]));
                                 }
-                            });
-                        }
+
+                                select.selectpicker('refresh');
+
+                                //Action migrate, copy the name of the selected job.
+                                if (select[0].id === "migrateSourceJob") {
+                                    $('#migrateJobName').val(select.val());
+                                }
+                            },
+                            error: function (xhr) {
+                                select.empty();
+                                select.selectpicker('refresh');
+
+                                toastr.error("Error trying to get list of jobs " + xhr.responseText);
+                            },
+                            beforeSend: function () {
+                                select.selectpicker('refresh');
+                                select.empty();
+                            }
+                        });
                     }
 
                     /**

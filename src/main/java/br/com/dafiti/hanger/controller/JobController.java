@@ -434,40 +434,80 @@ public class JobController {
     /**
      * Save a job.
      *
-     * @param job Job
+     * @param importServer
+     * @param createServer
+     * @param migrateSourceServer
+     * @param migrateTargetServer
      * @param importJob
-     * @param newJobName
-     * @param template
-     * @param importJobName
+     * @param createJob
+     * @param createJobName
+     * @param migrateSourceJob
+     * @param migrateTargetJob
+     * @param migrateJobName
+     * @param action
      * @param model
      * @return Job edit
      */
     @PostMapping(path = "/save", params = {"partial_load_job"})
     public String loadJob(
-            @Valid @ModelAttribute Job job,
-            @RequestParam(name = "importJob", required = false) boolean importJob,
-            @RequestParam(name = "jobName", required = false) String newJobName,
-            @RequestParam(name = "select-template", required = false) String template,
-            @RequestParam(name = "select-job", required = false) String importJobName,
-            Model model) {
+            @RequestParam(name = "importServer", required = false) Server importServer,
+            @RequestParam(name = "createServer", required = false) Server createServer,
+            @RequestParam(name = "migrateSourceServer", required = false) Server migrateSourceServer,
+            @RequestParam(name = "migrateTargetServer", required = false) Server migrateTargetServer,
+            @RequestParam(name = "importJob", required = false) String importJob,
+            @RequestParam(name = "createJob", required = false) String createJob,
+            @RequestParam(name = "createJobName", required = false) String createJobName,
+            @RequestParam(name = "migrateSourceJob", required = false) String migrateSourceJob,
+            @RequestParam(name = "migrateTargetJob", required = false) String migrateTargetJob,
+            @RequestParam(name = "migrateJobName", required = false) String migrateJobName,
+            @RequestParam(name = "action", required = false) String action,
+            Model model) throws URISyntaxException, IOException {
+
+        Job job = new Job();
 
         try {
-            if (jenkinsService.isRunning(job.getServer())) {
-                //Identify if import or create a new job.
-                if (importJob) {
-                    job.setName(importJobName);
-                    job.setShellScript(jenkinsService.getShellScript(job));
-                } else {
-                    job.setName(newJobName);
-                    jenkinsService.clone(job, template);
-                    job.setShellScript(jenkinsService.getShellScript(job, template));
-                }
+            switch (action) {
+                case "import":
+                    if (jenkinsService.isRunning(importServer)) {
 
-                job.setAssignedNode(jenkinsService.getAssignedNode(job));
-                model.addAttribute("readOnly", true);
-            } else {
-                throw new URISyntaxException("Server is not running", "Jenkins");
+                        job.setServer(importServer);
+                        job.setName(importJob);
+                        job.setShellScript(jenkinsService.getShellScript(job));
+                    } else {
+                        throw new URISyntaxException("Server is not running", "Jenkins");
+                    }
+                    break;
+                case "create":
+                    if (jenkinsService.isRunning(createServer)) {
+
+                        job.setServer(createServer);
+                        job.setName(createJobName);
+                        jenkinsService.clone(job, createJob);
+                        job.setShellScript(jenkinsService.getShellScript(job, createJob));
+                    } else {
+                        throw new URISyntaxException("Server is not running", "Jenkins");
+                    }
+
+                    break;
+                default:
+
+                    if (jenkinsService.isRunning(migrateSourceServer)
+                            && jenkinsService.isRunning(migrateTargetServer)) {
+                        Job sourceJob = new Job();
+                        sourceJob.setServer(migrateSourceServer);
+                        sourceJob.setName(migrateSourceJob);
+
+                        job.setServer(migrateTargetServer);
+                        job.setName(migrateJobName);
+                        jenkinsService.clone(job, migrateTargetJob);
+                        job.setShellScript(jenkinsService.getShellScript(sourceJob));
+                    } else {
+                        throw new URISyntaxException("Server is not running", "Jenkins");
+                    }
             }
+
+            job.setAssignedNode(jenkinsService.getAssignedNode(job));
+            model.addAttribute("readOnly", true);
 
         } catch (URISyntaxException | IOException ex) {
             job.setServer(null);
