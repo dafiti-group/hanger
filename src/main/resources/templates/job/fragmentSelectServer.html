@@ -33,14 +33,21 @@
                                         th:text="${server.name}">
                                 </option>
                             </select>
-                            <span th:if="${#fields.hasErrors('server')}" class="help-block" th:errors="*{server}"></span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Name</label>
-                            <select class="selectpicker form-control incremental" data-live-search="true" name="importJob" id="importJob"></select>
+                            <select class="selectpicker form-control select-job incremental" data-live-search="true" name="importJob" id="importJob"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <button type="submit" class="btn btn-generic btn-sm" name="partial_import_job" id="partial_import_job">
+                                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Next
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -57,21 +64,28 @@
                                         th:text="${server.name}">
                                 </option>
                             </select>
-                            <span th:if="${#fields.hasErrors('server')}" class="help-block" th:errors="*{server}"></span>
                         </div>
                     </div>                    
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Template</label> 
-                            <select class="selectpicker form-control" data-live-search="true" name="createJob" id="createJob"></select>
+                            <select class="selectpicker form-control select-job" data-live-search="true" name="createJob" id="createJob"></select>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Name</label> 
-                            <input type="text" class="form-control" name="createJobName" id="createJobName" minlength="10" />
+                            <input type="text" class="form-control job-name" name="createJobName" id="createJobName" minlength="10" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <button type="submit" class="btn btn-generic btn-sm" name="partial_create_job" id="partial_create_job">
+                                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Next
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -88,14 +102,13 @@
                                         th:text="${server.name}">
                                 </option>
                             </select>
-                            <span th:if="${#fields.hasErrors('server')}" class="help-block" th:errors="*{server}"></span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Job</label>
-                            <select class="selectpicker form-control" data-live-search="true" name="migrateSourceJob" id="migrateSourceJob"></select>
+                            <select class="selectpicker form-control select-job" data-live-search="true" name="migrateSourceJob" id="migrateSourceJob"></select>
                         </div>
                     </div>
 
@@ -109,35 +122,31 @@
                                         th:text="${server.name}">
                                 </option>
                             </select>
-                            <span th:if="${#fields.hasErrors('server')}" class="help-block" th:errors="*{server}"></span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Template</label> 
-                            <select class="selectpicker form-control" data-live-search="true" name="migrateTargetJob" id="migrateTargetJob"></select>
+                            <select class="selectpicker form-control select-job" data-live-search="true" name="migrateTargetJob" id="migrateTargetJob"></select>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <div class="col-sm-10">
                             <label>Name</label> 
-                            <input type="text" class="form-control" name="migrateJobName" id="migrateJobName" minlength="10" />
+                            <input type="text" class="form-control job-name" name="migrateJobName" id="migrateJobName" minlength="10" />
                         </div>
                     </div>
-                </div>
 
-                <!--Buttons-->
-                <div class="form-group">
-                    <div class="col-sm-10">
-                        <button id="modal_wait" type="button" class="btn btn-generic btn-sm pull-right btn-space" style="display:none;">
-                            <img th:src="@{'/images/ajax-loader.gif'}"></img>
-                        </button>
-                        <button type="submit" class="btn btn-generic btn-sm" name="partial_load_job" id="partial_load_job">
-                            <span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Next
-                        </button>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <button type="submit" class="btn btn-generic btn-sm" name="partial_migrate_job" id="partial_migrate_job">
+                                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Next
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>       	

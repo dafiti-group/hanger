@@ -48,13 +48,8 @@
             <!--Scroll position-->
             <script th:inline="javascript">
                 $(document).ready(function () {
-                    // This div should appear when click on 'Add job' radio btn.
-                    $(".div-create").hide("fast");
-                    $(".div-migrate").hide("fast");
-                    $(".div-import").show("fast");
-
-                    // Default value is to import jobs.
-                    var action = "import";
+                    //Initial view to add job.
+                    loadJobDisplay("import");
 
                     toastr.options = {
                         "closeButton": true,
@@ -69,27 +64,7 @@
 
                     //Displays the fields from the selected action.
                     $("input[name=action]").on("change", function () {
-                        action = $(this).val();
-
-                        switch (action) {
-                            case "import":
-                                $(".div-create").hide("fast");
-                                $(".div-migrate").hide("fast");
-                                $(".div-import").show("fast");
-
-                                break;
-
-                            case "create":
-                                $(".div-import").hide("fast");
-                                $(".div-migrate").hide("fast");
-                                $(".div-create").show("fast");
-
-                                break;
-                            default:
-                                $(".div-import").hide("fast");
-                                $(".div-create").hide("fast");
-                                $(".div-migrate").show("fast");
-                        }
+                        loadJobDisplay($(this).val());
                     });
 
                     //Identify the server for the selected action.
@@ -145,6 +120,66 @@
                     }
 
                     /**
+                     * Load job display by the selected action.
+                     * @param {type} action
+                     */
+                    function loadJobDisplay(action) {
+                        switch (action) {
+                            case "import":
+                                //Display only the import div.
+                                $(".div-create").hide("fast");
+                                $(".div-migrate").hide("fast");
+                                $(".div-import").show("fast");
+
+                                //Disable the required fields of other actions.
+                                $(".select-server").removeAttr("required");
+                                $(".select-job").removeAttr("required");
+                                $(".job-name").removeAttr("required");
+
+                                //Import fields as required.
+                                $("#importServer").attr("required", "true");
+                                $("#importJob").attr("required", "true");
+
+                                break;
+
+                            case "create":
+                                //Display only the create div.
+                                $(".div-import").hide("fast");
+                                $(".div-migrate").hide("fast");
+                                $(".div-create").show("fast");
+
+                                //Disable the required fields of other actions.
+                                $(".select-server").removeAttr("required");
+                                $(".select-job").removeAttr("required");
+                                $(".job-name").removeAttr("required");
+
+                                //Create fields as required.
+                                $("#createServer").attr("required", "true");
+                                $("#createJob").attr("required", "true");
+                                $("#createJobName").attr("required", "true");
+
+                                break;
+                            default:
+                                //Display only the migrate div.
+                                $(".div-import").hide("fast");
+                                $(".div-create").hide("fast");
+                                $(".div-migrate").show("fast");
+
+                                //Disable the required fields of other actions.
+                                $(".select-server").removeAttr("required");
+                                $(".select-job").removeAttr("required");
+                                $(".job-name").removeAttr("required");
+
+                                //Migrate fields as required.
+                                $("#migrateSourceServer").attr("required", "true");
+                                $("#migrateSourceJob").attr("required", "true");
+                                $("#migrateTargetServer").attr("required", "true");
+                                $("#migrateTargetJob").attr("required", "true");
+                                $("#migrateJobName").attr("required", "true");
+                        }
+                    }
+
+                    /**
                      * Show wait panel.
                      * @returns {undefined}
                      */
@@ -165,13 +200,13 @@
                     });
 
                     $("#form-job").submit(function (event) {
-                        $('#select-server').prop('readonly', true);
-                        $('#select-server').selectpicker('refresh');
-                        $('#select-job').prop('readonly', true);
-                        $('#select-job').selectpicker('refresh');
-                        $('#select-template').prop('readonly', true);
-                        $('#select-template').selectpicker('refresh');
-                        $("#jobName").prop("readonly", true);
+                        $('.select-server').prop('readonly', true);
+                        $('.select-server').selectpicker('refresh');
+
+                        $('.select-job').prop('readonly', true);
+                        $('.select-job').selectpicker('refresh');
+
+                        $(".job-name").prop("readonly", true);
                     });
 
                     /**
