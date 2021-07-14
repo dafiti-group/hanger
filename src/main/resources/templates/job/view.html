@@ -56,10 +56,10 @@
                     </div>
 
                     <div th:if="${ job.server != null }">
-                        <!--Name-->                        
+                        <!--Name-->         
+                        <label>Name</label>  
                         <div class="form-group">
-                            <div class="col-sm-10">
-                                <label>Name</label>                                
+                            <div class="col-sm-10">                                                              
                                 <input type="text" class="form-control" th:value="*{name}" readonly="true"/>
                             </div>
                         </div>
@@ -89,43 +89,12 @@
                             </div>
                         </div>
 
+                        <label title="Minutes beetwen rebuild">Rebuild interval</label>
                         <div class="form-group">   
-                            <div class="col-sm-10">
-                                <label title="Minutes beetwen rebuild">Rebuild interval</label>
+                            <div class="col-sm-10">              
                                 <input type="number" min="0" max="59" class="form-control" maxlength="1" th:field="*{wait}" disabled="true"/>
                                 <span th:if="${#fields.hasErrors('wait')}" class="help-block" th:errors="*{wait}"></span>
                             </div>
-                        </div>
-                    </div>
-
-                    <label>Node <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Assign node where this job will execute"></span></label>
-                    <div class="form-group">
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" th:value="*{node}" readonly="true"/>
-                            <span th:if="${#fields.hasErrors('node')}" class="help-block" th:errors="*{node}"></span>
-                        </div>
-                    </div>
-
-                    <label>Cron <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Cron expression that defines when the job will be built"></span></label>
-                    <div class="form-group">
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" th:value="*{cron}" readonly="true"/>
-                            <div th:if="${not #lists.isEmpty(job.getCronDescription())}" class="alert alert-warning" role="alert" style="margin-bottom: 0">
-                                <span th:text="${job.getCronDescription()}"></span>
-                            </div>
-                            <span th:if="${#fields.hasErrors('cron')}" class="help-block" th:errors="*{cron}"></span>
-                        </div>
-                    </div>
-
-                    <label>Blocking Jobs</label>
-                    <div class="form-group">
-                        <div class="col-sm-10">
-                            <textarea 
-                                class="form-control" 
-                                rows="3" 
-                                th:field="*{blockingJobs}"
-                                readonly="true"></textarea>   
-                            <span th:if="${#fields.hasErrors('blockingJobs')}" class="help-block" th:errors="*{blockingJobs}"></span>
                         </div>
                     </div>
 
@@ -146,6 +115,41 @@
                             </tr>
                         </table>
                     </div>                    
+
+                    <fieldset>
+                        <legend>
+                            Jenkins
+                        </legend>
+                    </fieldset>
+
+                    <label>Node <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Assign node where this job will execute"></span></label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" th:value="*{node}" readonly="true"/>
+                            <span th:if="${#fields.hasErrors('node')}" class="help-block" th:errors="*{node}"></span>
+                        </div>
+                    </div>
+
+                    <label>Cron <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Cron expression that defines when the job will be built"></span></label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <pre class="line-numbers">                                
+                                <code class="language-bash" th:text="*{cron}"></code>                                
+                            </pre>
+                            <div th:if="${not #strings.isEmpty(job.getCronDescription(true))}" class="alert alert-warning" role="alert" style="margin-bottom: 0">
+	                        	<span th:text="${job.getCronDescription(true)}"></span>
+	                        </div>
+	                     </div>
+                    </div>
+
+                    <label>Blocking Jobs</label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <pre class="line-numbers">                                
+                                <code class="language-bash" th:text="*{blockingJobs}"></code>                                
+                            </pre>
+                        </div>
+                    </div>
 
                     <div th:if="${not #lists.isEmpty(job.shellScript)}"> 
                         <fieldset>

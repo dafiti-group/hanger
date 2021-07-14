@@ -46,6 +46,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -55,6 +56,8 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -78,6 +81,7 @@ public class JobCheckupService {
     private final MailService mailService;
     private final JobStatusService jobStatusService;
     private final SlackService slackService;
+    private final TemplateService templateService;
 
     private static final Logger LOG = LogManager.getLogger(JobBuildPushService.class.getName());
 
@@ -92,7 +96,8 @@ public class JobCheckupService {
             CommandLogService commandLogService,
             MailService mailService,
             JobStatusService jobStatusService,
-            SlackService slackService) {
+            SlackService slackService,
+            TemplateService templateService) {
 
         this.jdbcTemplate = jdbcTemplate;
         this.jobCheckupRepository = jobCheckupRepository;
@@ -104,6 +109,7 @@ public class JobCheckupService {
         this.mailService = mailService;
         this.jobStatusService = jobStatusService;
         this.slackService = slackService;
+        this.templateService = templateService;
     }
 
     /**
@@ -122,7 +128,7 @@ public class JobCheckupService {
      * @return JobCheckup.
      */
     public JobCheckup load(Long id) {
-        return jobCheckupRepository.findById(id).get();
+        return jobCheckupRepository.findById(id).orElse(null);
     }
 
     /**
@@ -367,7 +373,11 @@ public class JobCheckupService {
             jdbcTemplate.setMaxRows(1);
 
             //Execute a query. 
-            value = jdbcTemplate.queryForObject(checkup.getQuery(), (ResultSet rs, int row) -> rs.getString(1));
+            value = jdbcTemplate
+                    .queryForObject(
+                            this.replaceParameter(checkup.getQuery()),
+                            (ResultSet rs, int row) -> rs.getString(1)
+                    );
         } catch (DataAccessException ex) {
             value = ex.getMessage();
         } finally {
@@ -417,10 +427,17 @@ public class JobCheckupService {
 
         try {
             //Set a connection to database.
-            jdbcTemplate.setDataSource(connectionService.getDataSource(checkup.getConnection()));
+            jdbcTemplate
+                    .setDataSource(
+                            connectionService
+                                    .getDataSource(checkup.getConnection())
+                    );
 
             //Execute a query.
-            affected = jdbcTemplate.update(command.getCommand());
+            affected = jdbcTemplate
+                    .update(
+                            this.replaceParameter(command.getCommand())
+                    );
 
             //Log the affected rows.
             log = "Affected record[s]: " + affected;
@@ -480,7 +497,10 @@ public class JobCheckupService {
 
             //Write shell command to sh file.
             try (FileWriter writer = new FileWriter(tmp)) {
-                writer.write(command.getCommand().replaceAll("\r", ""));
+                writer
+                        .write(
+                                this.replaceParameter(command.getCommand()).replaceAll("\r", "")
+                        );
             }
 
             //Parse the command to run.
@@ -628,6 +648,45 @@ public class JobCheckupService {
         }
 
         return threshold;
+    }
+
+    /**
+     * Replace template parameters.
+     *
+     * @param template String
+     * @return String Replaced template.
+     */
+    private String replaceParameter(String template) {
+        JSONArray values = new JSONArray();
+        Map<String, Map<String, String>> parameters = templateService.getParameters(template);
+
+        if (!parameters.isEmpty()) {
+            parameters.entrySet().forEach(entry -> {
+                String id = entry.getValue().get("name");
+                String value = entry.getValue().get("default");
+
+                JobCheckup checkup = this.load(Long.valueOf(id));
+
+                if (checkup != null) {
+                    if (!checkup.getLog().isEmpty()) {
+                        value = checkup.getLog()
+                                .stream()
+                                .max(Comparator.comparing(JobCheckupLog::getDate))
+                                .get()
+                                .getValue();
+                    }
+                }
+                values.put(
+                        new JSONObject()
+                                .put("name", entry.getKey())
+                                .put("value", value)
+                );
+            });
+
+            template = templateService.setParameters(template, values);
+        }
+
+        return template;
     }
 
     /**

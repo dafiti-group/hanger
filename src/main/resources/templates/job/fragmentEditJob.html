@@ -41,9 +41,10 @@
                     </div>
                 </div>
 
+                <label>Description</label> 
                 <div class="form-group">
                     <div class="col-sm-10">
-                        <label>Description</label> 
+
                         <textarea class="form-control" rows="3" th:field="*{description}" placeholder="Description" maxlength="65000"></textarea>
                     </div>
                     <span th:if="${#fields.hasErrors('description')}" class="help-block" th:errors="*{description}"></span>
@@ -55,7 +56,7 @@
                         <input type="text" maxlength="255" class="form-control" th:field="*{timeRestriction}" placeholder="Cron expression"/>
                         <span th:if="${#fields.hasErrors('timeRestriction')}" class="help-block" th:errors="*{timeRestriction}"></span>
                         <div class="alert alert-light" role="alert" style="margin-bottom: 0">
-                            Sintax:
+                            Sintaxe:
                             <b>&lt;Seconds&gt; &lt;Minutes&gt; &lt;Hours&gt; &lt;Day of month&gt; &lt;Month&gt; &lt;Day of week&gt; [Year]</b> where, for instance,
                             <b>* * 11-12 ? * * *</b> allows a job to be build at <b>every hour between 11 and 12</b>. For more details visit: <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" target="_blank">QUARTZ Cron Trigger Tutorial</a>
                         </div>
@@ -70,43 +71,11 @@
                     </div>
                 </div>
 
+                <label title="Minutes beetwen rebuild">Rebuild interval</label>
                 <div class="form-group">
                     <div class="col-sm-10">
-                        <label title="Minutes beetwen rebuild">Rebuild interval</label>
                         <input type="number" min="0" max="720" class="form-control" maxlength="1" th:field="*{wait}" required="false" placeholder="Waiting time"/>
                         <span th:if="${#fields.hasErrors('wait')}" class="help-block" th:errors="*{wait}"></span>
-                    </div>
-                </div>
-
-                <label>Node <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Assign node where this job will execute"></span></label>
-                <div class="form-group">
-                    <div class="col-sm-10">
-                        <input type="text" maxlength="255" class="form-control" th:field="*{node}" placeholder="Node"/>
-                        <span th:if="${#fields.hasErrors('node')}" class="help-block" th:errors="*{node}"></span>
-                    </div>
-                </div>
-
-                <label>Cron <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Cron expression that defines when the job will be built"></span></label>
-                <div class="form-group">
-                    <div class="col-sm-10">
-                        <input type="text" maxlength="150" class="form-control" th:field="*{cron}" placeholder="Cron"/>
-                        <div id="divCronDescription" class="alert alert-warning" role="alert" style="margin-bottom: 0">
-                            <span id="cronDescription"></span>
-                        </div>
-                        <span th:if="${#fields.hasErrors('cron')}" class="help-block" th:errors="*{cron}"></span>
-                    </div>
-                </div>
-
-                <label>Blocking Jobs</label>
-                <div class="form-group">
-                    <div class="col-sm-10">
-                        <textarea 
-                            class="form-control" 
-                            rows="3" 
-                            placeholder="Blocking Jobs"
-                            th:field="*{blockingJobs}"
-                            maxlength="65000"></textarea>                           
-                        <span th:if="${#fields.hasErrors('blockingJobs')}" class="help-block" th:errors="*{blockingJobs}"></span>
                     </div>
                 </div>
 
@@ -173,6 +142,44 @@
                             </td>
                         </tr>
                     </table>
+                </div>
+
+                <fieldset>
+                    <legend>
+                        Jenkins
+                    </legend>
+                </fieldset>
+
+                <label>Node <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Assign node where this job will execute"></span></label>
+                <div class="form-group">
+                    <div class="col-sm-10">
+                        <input type="text" maxlength="255" class="form-control" th:field="*{node}" placeholder="Node"/>
+                        <span th:if="${#fields.hasErrors('node')}" class="help-block" th:errors="*{node}"></span>
+                    </div>
+                </div>
+
+                <label>Cron <span class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Cron expression that defines when the job will be built"></span></label>
+                <div class="form-group">
+                    <div class="col-sm-10">
+                        <input type="text" maxlength="150" class="form-control" th:field="*{cron}" placeholder="Cron"/>
+                        <div id="divCronDescription" class="alert alert-warning" role="alert" style="margin-bottom: 0">
+                            <span id="cronDescription"></span>
+                        </div>
+                        <span th:if="${#fields.hasErrors('cron')}" class="help-block" th:errors="*{cron}"></span>
+                    </div>
+                </div>
+
+                <label>Blocking Jobs</label>
+                <div class="form-group">
+                    <div class="col-sm-10">
+                        <textarea 
+                            class="form-control" 
+                            rows="3" 
+                            placeholder="Blocking Jobs"
+                            th:field="*{blockingJobs}"
+                            maxlength="65000"></textarea>                           
+                        <span th:if="${#fields.hasErrors('blockingJobs')}" class="help-block" th:errors="*{blockingJobs}"></span>
+                    </div>
                 </div>
 
                 <div th:if="${not #lists.isEmpty(job.shellScript)}"> 
@@ -468,6 +475,11 @@
                                         <div class="col-sm-10">
                                             <label>SQL</label> 
                                             <textarea class="form-control" rows="6" th:field="*{checkup[__${checkupStat.index}__].query}" required="true" placeholder="SQL select statement" maxlength="65000"></textarea>
+                                            <div class="alert alert-light" role="alert" style="margin-bottom: 0">
+                                                SQL parameters sintaxe:
+                                                <b>${{checkup ID}}</b> where a checkup ID should refer to check result that are replacing the variable, as: 
+                                                <b>${{checkup ID::{"default":10}}}</b> where <b>::</b> indicate that default value attribute of a variable are being suplied by <b>{"default":10}</b>                                            
+                                            </div>
                                         </div>
                                     </div>  
 

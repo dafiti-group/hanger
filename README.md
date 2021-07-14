@@ -550,7 +550,7 @@ If it is necessary execute the validation of the data from *job* execution, on t
 	- ***FULL***: the *job* checkup will be executed only when all the dependencies with FULL and PARTIAL scope are concluded.
 	- ***PARTIAL***: the *job* checkup will be executed only when all the dependencies with PARTIAL scope are concluded.
 	- ***ANYONE***: the *job* checkup will be executed always when the dependencies with FULL or PARTIAL scope are concluded.
-- Define the SQL validation instruction on ***SQL Select Statement*** field. The resultset must return only an integer value.
+- Define the SQL validation instruction on ***SQL Select Statement*** field, is it possible to reference the result of another ckeckup, using the following sintax: ${{checkup ID}}.The resultset must return only an integer value.
 - Select the condition on ***Condition***.
 - Define the expected result on Threshold field. Is it possible to reference the result of another ckeckup, using the following sintax: ***${checkup ID}***.
 - On ***On fail*** field, select the action that will be executed, whether the validation fails. The available options are:
@@ -565,7 +565,7 @@ If it is necessary execute the validation of the data from *job* execution, on t
 - If the chosen option is ***REBUILD_TRIGGER***, click on ***Add Trigger*** button. The modal ***Trigger*** will be displayed and will be possible to select which dependencies must be executed again.
 - If it is necessary to execute some comand when the checkup fails, click on ***Add Command*** button. The new section, ***Script on failure*** will be displayed:
 	> Select the action between ***SHELL*** or ***SQL*** to be executed.
-	> On ***Script*** field, inform the action to be executed.
+	> On ***Script*** field, inform the action to be executed. Is it possible to reference the result of another ckeckup, using the following sintax: ${{checkup ID}}
 - A checkup can be executed as a pre validation or a pos validation. Pre validations happens when all the dependencies have been fullfilled and immediately before of the *job* execution, while pos validations happen after the *job* execution. To define the type of a checkup, click on toggle and chose between ***Pre-validation*** e ***Post-validation***.
 - On ***Retries***, define the number of attempts of *job* execution.
 - If it is necessary, select an approver for the checkup on ***Approver*** field.
